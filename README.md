@@ -14,7 +14,7 @@ go-live date TBD.
 - [X] Add file upload
 - [X] Add a news page for ABA news. 
 - [ ] Write an "About" Page
-- [ ] Add correlation matrix
+- [X] Add correlation matrix
 - [ ] Talk to Jenna about what kinds of data analysis she and Kim do regularly. 
 - [ ] What are the variables? How are the data structured? What do reports look like?
 - [ ] Master Markdown Report Generation and implement. 
