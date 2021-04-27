@@ -235,16 +235,42 @@ server <-function(input, output, session) {
 # News Module -------------------------------------------------------------
 
         
-    newstable<-news('ABA"%20therapy') %>% 
-        as_tibble() %>% 
-        head(10) %>% 
+    newstable <- news('ABA"%20therapy') %>% 
+      as_tibble() %>% 
       mutate(headline = Title) %>% 
       mutate(Link = paste0("<a href='",Link,"'>link</a>")) %>% 
       dplyr::select(headline, Time, Source, Description, Link)
     
+    ago<- news_dat %>% 
+      as_tibble() %>% 
+      arrange(Time) %>% 
+      dplyr::filter(grepl("ago", Time))  %>% 
+      tidyr::separate(Time, c("num", "unts", "ago"), " ", remove = FALSE) %>%  
+      mutate(num = as.numeric(num)) %>% 
+      mutate(newtime = case_when(
+        unts == "minutes" ~ Sys.Date(),
+        unts == "minute" ~ Sys.Date(),
+        unts == "hours" ~ Sys.Date(),
+        unts == "hour" ~ Sys.Date(),
+        unts == "days" ~ Sys.Date()- num
+      )) %>% 
+      dplyr::select(headline, Source, Time, newtime,  Description, Link)
+    
+    yesterday <- news_dat %>% 
+      as_tibble() %>% 
+      arrange(Time) %>% 
+      dplyr::filter(grepl('Yesterday', Time)) %>% 
+      mutate(newtime = Sys.Date() -1 ) %>% 
+      dplyr::select(headline, Source, Time, newtime, Description, Link)
+    
+    newstable<-rbind(ago, yesterday) %>% 
+      dplyr::arrange(desc(newtime), Time) %>% 
+      head(10) %>% 
+      dplyr::select(headline, Source, Time, Description, Link)
+    
    output$news_table <- DT::renderDataTable(newstable, escape = FALSE)
     
-   # deprecated until the flipbox thing is figured out. 
+   
    # article 1 
     output$active_side_1<- renderUI({
       side <- if (input$myflipbox1) "front" else "back"
