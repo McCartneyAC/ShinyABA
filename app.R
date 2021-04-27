@@ -7,7 +7,6 @@ library(shinydashboardPlus)
 library(shinyWidgets)
 library(DT)
 library(psych)
-library(dplyr)
 library(tidyr)
 library(sjPlot)
 library(MASS)
@@ -19,6 +18,7 @@ library(tibble)
 library(gt)
 library(xml2)
 library(rvest)
+library(dplyr)
 # Functions ------------------------------------------------
 
 is_extant <-function(x) any(!is.na(x))
@@ -137,7 +137,7 @@ ui <- shinydashboardPlus::dashboardPage(
                     dropdownBlock(
                       fileInput("FileInput", "Input Your Data Set"),
                       id = "inputBlock",
-                      icon = NULL,
+                      icon = icon("upload"),
                       title = "Student Data",
                       badgeStatus = NULL
                     )
@@ -157,48 +157,55 @@ ui <- shinydashboardPlus::dashboardPage(
                   dashboardBody(tags$head(tags$title("ShinyABA")),
                                 tabItems(
                                   tabItem(tabName = "abouttab",
-                                    tabBox( title = "About",
-                                      tags$p("Info to go here: How to use. How to structure data. Acknowledgements. Where to send bug reports. Additional ABA information. ")
+                                    box( title = "About",
+                                      tags$p("Info to go here:", tags$br(),
+                                             "How to use. ", tags$br(),
+                                             "How to structure data.", tags$br(),
+                                             "Acknowledgements. ", tags$br(),
+                                             "Where to send bug reports.", tags$br(),
+                                             "Additional ABA information. "),
+                                      textOutput("article1_headline")
                                     )
                                   ),#tabItem (ABout)
                                   tabItem(tabName = "newstab",
-                                          tabBox(title = "ABA in the News", 
-                                                 DT::dataTableOutput("news_table"),
-                                              
-                                              
-                                              flipBox(
-                                                id = "myflipbox1",
-                                                width = 6,
-                                                front = div(
-                                                  class = "text-center",
-                                                  renderText(output$article1_headline),
-                                                  renderText(output$article1_source),
-                                                  renderText(output$article1_time)
-                                                  # img(
-                                                  #   src = "https://image.flaticon.com/icons/svg/149/149076.svg",
-                                                  #   height = "300px",
-                                                  #   width = "100%"
-                                                  # )
-                                                ),
-                                                back = div(
-                                                  class = "text-center",
-                                                  height = "300px",
-                                                  width = "100%",
-                                                  h1("Flip on click"),
-                                                  renderText(output$article1_desc)
-                                                )
-                                              )
-                                              
-                                              
-                                              
-                                              
-                                               ) #tabBox
+                                              fluidRow(
+                                                column(width = 12,
+                                                  box(title = "ABA in the News", solidHeader = TRUE, width = 12, height = 300,
+                                              # column(width = 6,
+                                              # flipBox(
+                                              #   id = "myflipbox1",
+                                              #   width = 12,
+                                              #   front = div(
+                                              #     height = "300px",
+                                              #     width = "100%",
+                                              #   # tags$h1(textOutput("article1_headline")),
+                                              #    # textOutput("article1_headline"),
+                                              #     tags$br(),
+                                              #     textOutput("article1_source"),
+                                              #     tags$br(),
+                                              #     textOutput("article1_time")
+                                              #   ),
+                                              #   back = div(
+                                              #     height = "300px",
+                                              #     width = "100%",
+                                              #     tags$h1("Header Text"),
+                                              #  #  h1(textOutput("article1_headline")),
+                                              #     textOutput("article1_desc")
+                                              #   )
+                                              # )
+                                              # ), #column
+
+                                                     DT::dataTableOutput("news_table")
+                                                     ) #box
+                                              ) #column
+
+                                               ) #fluidrow
                                           ),# tabitem
                                   tabItem(
                                     tabName = "dataset",
-                                      tabBox(
+                                      box(
                                         title = "Your Data",
-                                        width = 7,
+                                        width = 12,
                                         DT::dataTableOutput("data_table")
                                         ) # Tabbox (Dataset view)
                                 ) #tabidtem
@@ -231,11 +238,13 @@ server <-function(input, output, session) {
     newstable<-news('ABA"%20therapy') %>% 
         as_tibble() %>% 
         head(10) %>% 
-      mutate(Link = paste0("<a href='",Link,"'>link</a>"))
+      mutate(headline = Title) %>% 
+      mutate(Link = paste0("<a href='",Link,"'>link</a>")) %>% 
+      dplyr::select(headline, Time, Source, Description, Link)
     
    output$news_table <- DT::renderDataTable(newstable, escape = FALSE)
     
-   
+   # deprecated until the flipbox thing is figured out. 
    # article 1 
     output$active_side_1<- renderUI({
       side <- if (input$myflipbox1) "front" else "back"
@@ -245,7 +254,8 @@ server <-function(input, output, session) {
     article1_headline<-renderText(
       newstable %>% 
         dplyr::filter(row_number()==1) %>% 
-        dplyr::select(Title)
+        dplyr::select(headline)%>% 
+        as.character()
     )
     
     output$article1_link<-render_html()
@@ -253,19 +263,22 @@ server <-function(input, output, session) {
     output$article1_source <-renderText(
       newstable %>% 
         dplyr::filter(row_number()==1) %>% 
-        dplyr::select(Source)
+        dplyr::select(Source)%>% 
+        as.character()
     )
     
     output$article1_time <-renderText(
       newstable %>% 
         dplyr::filter(row_number()==1) %>% 
-        dplyr::select(Time)
+        dplyr::select(Time)%>% 
+        as.character()
     )
     
     output$article1_desc <-renderText(
       newstable %>% 
         dplyr::filter(row_number()==1) %>% 
-        dplyr::select(Description)
+        dplyr::select(Description)%>% 
+        as.character()
     )
 }
     
