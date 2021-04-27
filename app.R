@@ -150,7 +150,8 @@ ui <- shinydashboardPlus::dashboardPage(
                     sidebarMenu(id = "sidebar",
                                 menuItem("About", tabName = "abouttab", icon = icon("readme")),
                                 menuItem("News", tabName = "newstab", icon = icon("newspaper")),
-                                menuItem("View Data", tabName = "dataset", icon = icon("table"))
+                                menuItem("View Data", tabName = "dataset", icon = icon("table")),
+                                menuItem("Var Matrix", tabName = "matrix", icon = icon("th"))
                                 ) #menu
                     ), #sidebar
 
@@ -208,7 +209,14 @@ ui <- shinydashboardPlus::dashboardPage(
                                         width = 12,
                                         DT::dataTableOutput("data_table")
                                         ) # Tabbox (Dataset view)
-                                ) #tabidtem
+                                ), #tabidtem
+                                tabItem(tabName = "matrix",
+                                  box(
+                                    title = "Your Variables (This Might Take a While)",
+                                    width = 12,
+                                    plotOutput("dtamatrix")
+                                  )
+                                ) # tabitem
                                 ) #tabItems
                                 )# dashbaord body
                                 ) # UI
@@ -306,6 +314,19 @@ server <-function(input, output, session) {
         dplyr::select(Description)%>% 
         as.character()
     )
+
+# visualizations ----------------------------------------------------------
+
+    output$dtamatrix<-renderPlot({
+      req(datasetInput())
+      datasetInput() %>% 
+        select_if(is_numeric) %>% 
+        GGally::ggpairs()+
+        theme_light() + 
+        theme(axis.text.x = element_text(angle = 50, hjust = 1))
+    }, height = 650
+    )
+    
 }
     
   
