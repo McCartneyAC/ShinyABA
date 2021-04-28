@@ -18,3 +18,4 @@ go-live date TBD.
 - [ ] Talk to Jenna about what kinds of data analysis she and Kim do regularly. 
 - [ ] What are the variables? How are the data structured? What do reports look like?
 - [ ] Master Markdown Report Generation and implement. 
+- [x] put up on the web. 
